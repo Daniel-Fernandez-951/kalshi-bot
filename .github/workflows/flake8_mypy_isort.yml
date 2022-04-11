@@ -1,0 +1,30 @@
+name: Flake8 | Mypy | Isort
+on: [push]
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    name: Flake8 | Mypy | Isort
+    steps:
+    - name: checkout source repo
+      uses: actions/checkout@v2
+
+    - name: linting
+      uses: alexanderdamiani/pylinter@v1.4.2
+      with:
+        python-root: '.'
+        flake8-flags: '--count --show-source --statistics --max-line-length 120'
+        mypy-flags: '--ignore-missing-imports'
+        fail-on-isort: false
+        mypy-ignore-dirs-files: 'Dockerfile Dockerfile-dev .gitignore .env .env.sample'
+
+    - name: commit isort changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A && git diff-index --cached --quiet HEAD || git commit -m '🤖 isort 🤖'
+    - name: push isort changes
+      uses: ad-m/github-push-action@v0.5.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
